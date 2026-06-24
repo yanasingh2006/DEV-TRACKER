@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dev Progress Tracker</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0d0d0f;--surface:#141417;--surface2:#1a1a1f;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+      --text:#e8e8e6;--muted:#888880;--subtle:#3a3a38;
+      --green:#4ade80;--green-dim:rgba(34,197,94,0.13);--green-bright:#86efac;
+      --amber:#fbbf24;--amber-dim:rgba(245,158,11,0.13);
+      --red:#f87171;--red-dim:rgba(239,68,68,0.13);
+      --blue:#60a5fa;--blue-dim:rgba(59,130,246,0.13);
+      --accent:#a78bfa;--accent-dim:rgba(139,92,246,0.13);
+      --pink:#f472b6;--pink-dim:rgba(236,72,153,0.13);
+      --teal:#2dd4bf;--teal-dim:rgba(20,184,166,0.13);
+    }
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:1.5rem 1rem 4rem}
+    .wrap{max-width:800px;margin:0 auto}
+    /* TOPBAR */
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;flex-wrap:wrap;gap:8px}
+    .topbar-left{display:flex;align-items:center;gap:10px}
+    .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+    .app-title{font-size:15px;font-weight:600;letter-spacing:-.01em}
+    .app-sub{font-size:11px;color:var(--muted)}
+    .topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .date-chip{font-size:12px;color:var(--muted);background:var(--surface2);border:0.5px solid var(--border);padding:4px 10px;border-radius:20px}
+    .streak-chip{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--amber);background:var(--amber-dim);border:0.5px solid rgba(251,191,36,0.22);padding:4px 10px;border-radius:20px}
+    /* CARDS */
+    .card{background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:1.25rem}
+    .card-sm{padding:1rem}
+    .section-eyebrow{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem}
+    /* STATS */
+    .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1rem}
+    .stat{background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;padding:.75rem 1rem;text-align:center}
+    .stat-num{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1}
+    .stat-lbl{font-size:11px;color:var(--muted);margin-top:4px}
+    .stat-num.green{color:var(--green)}.stat-num.amber{color:var(--amber)}
+    .stat-num.red{color:var(--red)}.stat-num.accent{color:var(--accent)}.stat-num.blue{color:var(--blue)}
+    /* TABS */
+    .tabs{display:flex;gap:4px;background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem}
+    .tab{flex:1;padding:6px 10px;border-radius:7px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;text-align:center;transition:all .15s;border:none;background:none}
+    .tab.active{background:var(--surface);color:var(--text);border:0.5px solid var(--border2)}
+    /* LOG ROWS */
+    .log-grid{display:flex;flex-direction:column;gap:0}
+    .log-row{display:flex;align-items:flex-start;gap:12px;padding:.9rem 0;border-bottom:0.5px solid var(--border)}
+    .log-row:last-child{border-bottom:none}
+    .log-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:2px}
+    .log-icon.purple{background:var(--accent-dim);color:var(--accent)}
+    .log-icon.green{background:var(--green-dim);color:var(--green)}
+    .log-icon.blue{background:var(--blue-dim);color:var(--blue)}
+    .log-icon.amber{background:var(--amber-dim);color:var(--amber)}
+    .log-icon.pink{background:var(--pink-dim);color:var(--pink)}
+    .log-meta{flex:1;min-width:0}
+    .log-name{font-size:13.5px;font-weight:600;color:var(--text)}
+    .log-hint{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5}
+    /* CHIPS */
+    .chip-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+    .chip-wrap{display:inline-flex;align-items:center;border-radius:20px;border:0.5px solid var(--border2);background:var(--surface2);overflow:hidden;transition:border-color .12s}
+    .chip-wrap:hover{border-color:rgba(255,255,255,0.2)}
+    .chip-adj{width:24px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);background:none;border:none;transition:color .12s;padding:0;line-height:1;flex-shrink:0}
+    .chip-adj:hover{color:var(--text)}
+    .chip-adj.minus{padding-left:4px}.chip-adj.plus{padding-right:4px}
+    .chip-label{font-size:11.5px;font-weight:500;color:var(--muted);padding:0 4px;white-space:nowrap;transition:color .12s}
+    .chip-count{min-width:18px;height:18px;border-radius:9px;background:rgba(255,255,255,0.07);font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;margin:0 2px;transition:all .12s}
+    .chip-wrap.lc-easy.active{border-color:rgba(74,222,128,0.45);background:rgba(74,222,128,0.09)}
+    .chip-wrap.lc-medium.active{border-color:rgba(251,191,36,0.45);background:rgba(251,191,36,0.09)}
+    .chip-wrap.lc-hard.active{border-color:rgba(248,113,113,0.45);background:rgba(248,113,113,0.09)}
+    .chip-wrap.lc-rev-easy.active{border-color:rgba(74,222,128,0.35);background:rgba(74,222,128,0.07)}
+    .chip-wrap.lc-rev-medium.active{border-color:rgba(251,191,36,0.35);background:rgba(251,191,36,0.07)}
+    .chip-wrap.lc-rev-hard.active{border-color:rgba(248,113,113,0.35);background:rgba(248,113,113,0.07)}
+    .chip-wrap.cf-problem.active{border-color:rgba(167,139,250,0.45);background:rgba(167,139,250,0.09)}
+    .chip-wrap.cf-contest.active{border-color:rgba(244,114,182,0.45);background:rgba(244,114,182,0.09)}
+    .chip-wrap.cf-editorial.active{border-color:rgba(45,212,191,0.45);background:rgba(45,212,191,0.09)}
+    .chip-wrap.cs-os.active{border-color:rgba(96,165,250,0.45);background:rgba(96,165,250,0.09)}
+    .chip-wrap.cs-dbms.active{border-color:rgba(167,139,250,0.45);background:rgba(167,139,250,0.09)}
+    .chip-wrap.cs-gen.active{border-color:rgba(45,212,191,0.45);background:rgba(45,212,191,0.09)}
+    .chip-wrap.lc-easy.active .chip-label,.chip-wrap.lc-easy.active .chip-count{color:var(--green-bright)}
+    .chip-wrap.lc-medium.active .chip-label,.chip-wrap.lc-medium.active .chip-count{color:var(--amber)}
+    .chip-wrap.lc-hard.active .chip-label,.chip-wrap.lc-hard.active .chip-count{color:var(--red)}
+    .chip-wrap.lc-rev-easy.active .chip-label,.chip-wrap.lc-rev-easy.active .chip-count{color:var(--green)}
+    .chip-wrap.lc-rev-medium.active .chip-label,.chip-wrap.lc-rev-medium.active .chip-count{color:var(--amber)}
+    .chip-wrap.lc-rev-hard.active .chip-label,.chip-wrap.lc-rev-hard.active .chip-count{color:var(--red)}
+    .chip-wrap.cf-problem.active .chip-label,.chip-wrap.cf-problem.active .chip-count{color:var(--accent)}
+    .chip-wrap.cf-contest.active .chip-label,.chip-wrap.cf-contest.active .chip-count{color:var(--pink)}
+    .chip-wrap.cf-editorial.active .chip-label,.chip-wrap.cf-editorial.active .chip-count{color:var(--teal)}
+    .chip-wrap.cs-os.active .chip-label,.chip-wrap.cs-os.active .chip-count{color:var(--blue)}
+    .chip-wrap.cs-dbms.active .chip-label,.chip-wrap.cs-dbms.active .chip-count{color:var(--accent)}
+    .chip-wrap.cs-gen.active .chip-label,.chip-wrap.cs-gen.active .chip-count{color:var(--teal)}
+    .chip-wrap.active .chip-adj{color:rgba(255,255,255,0.35)}
+    .chip-wrap.active .chip-adj:hover{color:rgba(255,255,255,0.85)}
+    /* TOGGLE */
+    .toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+    .toggle input{opacity:0;width:0;height:0;position:absolute}
+    .toggle-track{width:44px;height:24px;border-radius:12px;background:var(--surface2);border:0.5px solid var(--border2);cursor:pointer;transition:background .15s,border-color .15s;display:block}
+    .toggle input:checked+.toggle-track{background:var(--green-dim);border-color:rgba(74,222,128,0.4)}
+    .toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--subtle);transition:transform .15s,background .15s;pointer-events:none}
+    .toggle input:checked~.toggle-thumb{transform:translateX(20px);background:var(--green)}
+    /* RULES BOX */
+    .rules-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px;color:var(--muted);padding:.5rem 0;user-select:none}
+    .rules-toggle:hover{color:var(--text)}
+    .rules-box{display:none;background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;padding:.85rem 1rem;margin-bottom:.75rem;font-size:12px;line-height:1.65}
+    .rules-box.open{display:block}
+    .rules-tier{margin-bottom:.85rem}.rules-tier:last-child{margin-bottom:0}
+    .rules-tier-head{font-weight:700;font-size:12px;margin-bottom:3px}
+    .rules-tier-head.g{color:var(--green-bright)}.rules-tier-head.y{color:var(--amber)}.rules-tier-head.r{color:var(--red)}
+    .rules-tier-body{color:var(--muted);font-size:11.5px}
+    /* TIER CHECKLIST */
+    .tier-check{display:flex;flex-direction:column;gap:4px;margin-top:.65rem;padding:.7rem .9rem;border-radius:9px;background:var(--surface2);border:0.5px solid var(--border)}
+    .tier-check-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+    .tier-check-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--subtle)}
+    .tier-check-row.done{color:var(--green-bright)}
+    .tier-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--subtle);border:1px solid var(--subtle)}
+    .tier-dot.done{background:var(--green);border-color:var(--green);box-shadow:0 0 5px rgba(74,222,128,0.4)}
+    /* NUDGE */
+    .nudge{font-size:11.5px;color:var(--muted);margin-top:.65rem;padding:.6rem .85rem;border-radius:9px;background:var(--surface2);border:0.5px solid var(--border);line-height:1.5}
+    .nudge.ok{color:var(--green-bright);border-color:rgba(74,222,128,0.28);background:var(--green-dim)}
+    .nudge.warn{color:#fca5a5;border-color:rgba(248,113,113,0.38);background:var(--red-dim)}
+    .nudge.info{color:var(--amber);border-color:rgba(251,191,36,0.28);background:var(--amber-dim)}
+    .nudge.floor{color:var(--red);border-color:rgba(248,113,113,0.28);background:var(--red-dim)}
+    /* DAY BADGE */
+    .day-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:500}
+    .day-badge.green{background:var(--green-dim);color:var(--green-bright);border:0.5px solid rgba(74,222,128,0.28)}
+    .day-badge.yellow{background:var(--amber-dim);color:var(--amber);border:0.5px solid rgba(251,191,36,0.28)}
+    .day-badge.red{background:var(--red-dim);color:var(--red);border:0.5px solid rgba(248,113,113,0.28)}
+    .day-badge.missed{background:rgba(248,113,113,0.18);color:#fca5a5;border:0.5px solid rgba(248,113,113,0.48)}
+    .day-badge.gray{background:var(--surface2);color:var(--muted);border:0.5px solid var(--border)}
+    /* EDITING BANNER */
+    .editing-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(167,139,250,0.12);border:0.5px solid rgba(167,139,250,0.35);border-radius:10px;padding:.7rem 1rem;margin-bottom:.85rem;font-size:13px;color:var(--accent)}
+    .editing-banner button{flex-shrink:0}
+    /* STATUS BAR */
+    .status-bar{display:flex;align-items:center;justify-content:space-between;margin-top:1rem;gap:10px;flex-wrap:wrap}
+    .save-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);justify-content:center;margin-top:.6rem;flex-wrap:wrap;text-align:center}
+    .save-status .dot-ok{color:var(--green)}.save-status .dot-warn{color:var(--amber)}
+    /* SAVE BTN */
+    .save-btn{width:100%;padding:.75rem;font-size:14px;font-weight:600;background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(74,222,128,0.1));color:var(--text);border:0.5px solid rgba(167,139,250,0.35);border-radius:10px;cursor:pointer;margin-top:1rem;transition:opacity .15s,border-color .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+    .save-btn:hover{border-color:var(--accent);opacity:.9}
+    /* BACKUP BANNER */
+    .backup-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--amber-dim);border:0.5px solid rgba(251,191,36,0.3);border-radius:10px;padding:.65rem .9rem;margin-bottom:.85rem;font-size:12px;color:var(--amber)}
+    /* NOTES */
+    .notes-area{width:100%;background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;padding:.75rem;font-size:13px;color:var(--text);font-family:inherit;resize:vertical;min-height:72px;outline:none}
+    .notes-area:focus{border-color:var(--accent)}
+    .notes-area::placeholder{color:var(--subtle)}
+    /* BAR CHART */
+    .bar-chart{display:flex;gap:4px;height:80px;align-items:flex-end;margin-top:.5rem}
+    .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+    .bar{width:100%;border-radius:4px 4px 0 0;min-height:2px}
+    .bar.green{background:rgba(74,222,128,0.55)}.bar.yellow{background:rgba(251,191,36,0.55)}
+    .bar.red{background:rgba(248,113,113,0.55)}.bar.missed{background:rgba(248,113,113,0.9)}
+    .bar-lbl{font-size:9px;color:var(--subtle);text-align:center}
+    /* BACKLOG */
+    .bl-row{display:flex;align-items:center;justify-content:space-between;padding:.55rem 0;border-bottom:0.5px solid var(--border)}
+    .bl-row:last-child{border-bottom:none}
+    .bl-name{font-size:13px;color:var(--muted)}
+    .bl-val.clear{color:var(--green);font-size:12px;font-weight:500;display:flex;align-items:center;gap:4px}
+    .bl-val.owed{color:var(--red);font-size:12px;font-weight:500}
+    .tomorrow-box{background:rgba(248,113,113,0.06);border:0.5px solid rgba(248,113,113,0.2);border-radius:8px;padding:.75rem 1rem;margin-top:.75rem}
+    .tomorrow-lbl{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem}
+    .tomorrow-row{font-size:12px;color:#fca5a5;padding:2px 0}
+    /* CALENDAR */
+    .month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+    .month-nav button{background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:13px;color:var(--text)}
+    .month-nav span{font-size:15px;font-weight:600}
+    .cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+    .cal-head{text-align:center;font-size:10px;color:var(--subtle);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;overflow:visible}
+    .cal-day{aspect-ratio:1;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;border:0.5px solid transparent;color:var(--subtle);position:relative;transition:transform .1s}
+    .cal-day.green-day{background:rgba(74,222,128,0.12);color:var(--green);border-color:rgba(74,222,128,0.25)}
+    .cal-day.yellow-day{background:rgba(251,191,36,0.10);color:var(--amber);border-color:rgba(251,191,36,0.25)}
+    .cal-day.red-day{background:rgba(248,113,113,0.10);color:var(--red);border-color:rgba(248,113,113,0.25)}
+    .cal-day.missed-day{background:rgba(248,113,113,0.22);color:#fff;border-color:rgba(248,113,113,0.55)}
+    .cal-day.future{color:var(--subtle);opacity:.3}
+    .cal-day.blank{background:transparent;border-color:transparent}
+    .cal-day.today-marker{outline:1.5px solid var(--accent);outline-offset:2px}
+    .cal-day.clickable:not(.future):not(.blank):hover{cursor:pointer;transform:scale(1.08);border-color:var(--accent)!important}
+    .cal-day.today-marker:hover{cursor:pointer;transform:scale(1.08)}
+    .cal-tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1f1f28;border:0.5px solid var(--border2);border-radius:9px;padding:9px 11px;white-space:nowrap;z-index:10;font-size:11px;color:var(--text);pointer-events:none;min-width:155px}
+    .cal-day:hover .cal-tip{display:block}
+    .cal-tip-date{font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:600}
+    .cal-tip-row{display:flex;justify-content:space-between;gap:14px;margin-bottom:3px}
+    .cal-tip-row:last-child{margin-bottom:0}
+    .tip-lbl{color:var(--muted)}.tip-val{font-weight:600}
+    .tip-pill{display:inline-block;font-size:9.5px;font-weight:600;padding:1px 5px;border-radius:4px;margin-left:2px}
+    .tip-pill.easy{background:rgba(74,222,128,0.15);color:var(--green)}
+    .tip-pill.medium{background:rgba(251,191,36,0.15);color:var(--amber)}
+    .tip-pill.hard{background:rgba(248,113,113,0.15);color:var(--red)}
+    .cal-tip-edit{font-size:10px;color:var(--accent);margin-top:5px;padding-top:5px;border-top:0.5px solid var(--border)}
+    /* LEGEND */
+    .legend{display:flex;gap:14px;margin-top:.85rem;flex-wrap:wrap}
+    .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+    .dot{width:8px;height:8px;border-radius:50%}
+    .dot.green{background:var(--green)}.dot.yellow{background:var(--amber)}.dot.red{background:var(--red)}.dot.missed{background:#fca5a5}
+    /* EXPORT */
+    .readme-section{background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;padding:1rem;margin-top:.75rem;font-family:ui-monospace,monospace;font-size:11px;color:#7ee8a2;white-space:pre-wrap;overflow-x:auto;line-height:1.6}
+    .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;border:0.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;transition:border-color .12s,color .12s}
+    .action-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    /* PAST-DAY PICKER CARD */
+    .past-picker{background:var(--surface2);border:0.5px solid var(--border2);border-radius:10px;padding:.85rem 1rem;margin-bottom:.85rem}
+    .past-picker-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.6rem}
+    .past-picker-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .date-input{background:var(--surface);border:0.5px solid var(--border2);border-radius:8px;padding:.45rem .7rem;font-size:13px;color:var(--text);font-family:inherit;outline:none;cursor:pointer;color-scheme:dark}
+    .date-input:focus{border-color:var(--accent)}
+    /* DATA SAFETY BANNER */
+    .safety-strip{display:flex;align-items:center;gap:8px;font-size:11px;padding:.55rem .85rem;border-radius:8px;margin-bottom:.5rem}
+    .safety-strip.safe{background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);color:var(--green-bright)}
+    .safety-strip.warn{background:var(--amber-dim);border:0.5px solid rgba(251,191,36,0.3);color:var(--amber)}
+    @media(max-width:580px){
+      .stats-row{grid-template-columns:repeat(3,1fr)}
+      .grid2{grid-template-columns:1fr}
+      .topbar{gap:10px}
+      .tier-checklist-grid{grid-template-columns:1fr!important}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo-dot"></div>
+      <div>
+        <div class="app-title">Dev Progress Tracker</div>
+        <div class="app-sub">Green → Yellow → Red. Never zero.</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="streak-chip"><i class="ti ti-flame"></i><span id="streak-num">0</span> day streak</div>
+      <div class="date-chip" id="today-chip"></div>
+    </div>
+  </div>
+
+  <!-- SUMMARY STATS (lifetime, only updated on explicit Save) -->
+  <div class="stats-row">
+    <div class="stat"><div class="stat-num green" id="s-lc">0</div><div class="stat-lbl">LC New</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--teal)" id="s-lcrev">0</div><div class="stat-lbl">LC Reviewed</div></div>
+    <div class="stat"><div class="stat-num accent" id="s-cf">0</div><div class="stat-lbl">CF Activity</div></div>
+    <div class="stat"><div class="stat-num blue"   id="s-cs">0</div><div class="stat-lbl">CS Topics</div></div>
+    <div class="stat"><div class="stat-num amber"  id="s-commits">0</div><div class="stat-lbl">Commits</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('log',this)"><i class="ti ti-pencil" style="font-size:13px"></i> Log</button>
+    <button class="tab" onclick="switchTab('backlog',this)"><i class="ti ti-list-check" style="font-size:13px"></i> Backlog</button>
+    <button class="tab" onclick="switchTab('calendar',this)"><i class="ti ti-calendar" style="font-size:13px"></i> Calendar</button>
+    <button class="tab" onclick="switchTab('export',this)"><i class="ti ti-download" style="font-size:13px"></i> Export</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ TAB: LOG ═══ -->
+  <div id="tab-log">
+    <!-- Backup reminder -->
+    <div class="backup-banner" id="backup-banner" style="display:none">
+      <span><i class="ti ti-alert-triangle"></i> It's been over a week since your last export — back up your data now.</span>
+      <button class="action-btn" onclick="exportJSON(true)">Backup now</button>
+    </div>
+
+    <!-- EDITING-PAST-DAY BANNER (hidden unless editing a past day) -->
+    <div class="editing-banner" id="editing-banner" style="display:none">
+      <span><i class="ti ti-clock-edit" style="margin-right:4px"></i> Editing past day: <strong id="editing-date-label"></strong></span>
+      <button class="action-btn" onclick="returnToToday()"><i class="ti ti-arrow-back"></i> Back to today</button>
+    </div>
+
+    <div class="card">
+      <!-- RULES reference -->
+      <div class="rules-toggle" onclick="toggleRules()">
+        <span><i class="ti ti-info-circle" style="margin-right:4px"></i>Green / Yellow / Red — what counts?</span>
+        <i class="ti ti-chevron-down" id="rules-chevron"></i>
+      </div>
+      <div class="rules-box" id="rules-box">
+        <div class="rules-tier">
+          <div class="rules-tier-head g">🟢 Green Day — Ideal (all 5 required)</div>
+          <div class="rules-tier-body">1 new LC <strong>Medium or Hard</strong> + 1 reviewed problem (60-90 min) · 1 CF problem / contest / editorial (45 min) · 1 CS topic 5-10 pages e.g. Deadlock, ACID, TCP handshake (30 min) · 1 real commit (60-90 min).</div>
+        </div>
+        <div class="rules-tier">
+          <div class="rules-tier-head y">🟡 Yellow Day — Busy College Day</div>
+          <div class="rules-tier-body">1 LC problem (any difficulty) + review 1 old problem + read 1 CS concept. 60-90 min total. CF and commit not required. Easy LC counts here but <em>not</em> for Green.</div>
+        </div>
+        <div class="rules-tier">
+          <div class="rules-tier-head r">🔴 Red Day — Survival Floor (60 min)</div>
+          <div class="rules-tier-body">20 min review 1 old LC note + 20 min read 1 OS/DBMS note + 20 min read 1 CF editorial. Absolute floor — never go below this.</div>
+        </div>
+      </div>
+
+      <div class="section-eyebrow" style="margin-top:.1rem">
+        Logging for — <span id="today-label" style="color:var(--text);font-weight:700"></span>
+      </div>
+
+      <div class="log-grid">
+        <!-- LC NEW -->
+        <div class="log-row">
+          <div class="log-icon purple"><i class="ti ti-code"></i></div>
+          <div class="log-meta">
+            <div class="log-name">LeetCode — new problem</div>
+            <div class="log-hint">Green requires <strong style="color:var(--amber)">Medium</strong> or <strong style="color:var(--red)">Hard</strong>. Easy counts for Yellow only.</div>
+            <div class="chip-group">
+              <div class="chip-wrap lc-easy" id="cw-lc-new-easy">
+                <button class="chip-adj minus" onclick="chipAdj('lc_new','easy',-1)">−</button>
+                <span class="chip-label">Easy</span><span class="chip-count" id="cnt-lc-new-easy">0</span>
+                <button class="chip-adj plus" onclick="chipAdj('lc_new','easy',+1)">+</button>
+              </div>
+              <div class="chip-wrap lc-medium" id="cw-lc-new-medium">
+                <button class="chip-adj minus" onclick="chipAdj('lc_new','medium',-1)">−</button>
+                <span class="chip-label">Medium</span><span class="chip-count" id="cnt-lc-new-medium">0</span>
+                <button class="chip-adj plus" onclick="chipAdj('lc_new','medium',+1)">+</button>
+              </div>
+              <div class="chip-wrap lc-hard" id="cw-lc-new-hard">
+                <button class="chip-adj minus" onclick="chipAdj('lc_new','hard',-1)">−</button>
+                <span class="chip-label">Hard</span><span class="chip-count" id="cnt-lc-new-hard">0</span>
+                <button class="chip-adj plus" onclick="chipAdj('lc_new','hard',+1)">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- LC REVIEW -->
+        <div class="log-row">
+          <div class="log-icon green"><i class="ti ti-refresh"></i></div>
+          <div class="log-meta">
+            <div class="log-name">LeetCode — reviewed problem</div>
+            <div class="log-hint">Spaced-repetition review of an old problem. Any difficulty. Required on all tiers.</div>
+            <div class="chip-group">
+              <div class="chip-wrap lc-rev-easy" id="cw-lc-rev-easy">
+                <button class="chip-adj minus" onclick="chipAdj('lc_rev','easy',-1)">−</button>
+                <span class="chip-label">Easy</span><span class="chip-count" id="cnt-lc-rev-easy">0</span>
+                <button class="chip-adj plus" onclick="chipAdj('lc_rev','easy',+1)">+</button>
+              </div>
+              <div class="chip-wrap lc-rev-medium" id="cw-lc-rev-medium">
+                <button class="chip-adj minus" onclick="chipAdj('lc_rev','medium',-1)">−</button>
+                <span class="chip-label">Medium</span><span class="chip-count" id="cnt-lc-rev-medium">0</span>
+                <button class="chip-adj plus" onclick="chipAdj('lc_rev','medium',+1)">+</button>
+              </div>
+              <div class="chip-wrap lc-rev-hard" id="cw-lc-rev-hard">
+                <button class="chip-adj minus" onclick="chipAdj('lc_rev','hard',-1)">−</button>
+                <span class="chip-label">Hard</span><span class="chip-count" id="cnt-lc-rev-hard">0</span>
+                <button class="chip-adj plus" onclick="chipAdj('lc_rev','hard',+1)">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- CF -->
+        <div class="log-row">
+          <div class="log-icon pink"><i class="ti ti-tournament"></i></div>
+          <div class="log-meta">
+            <div class="log-name">Codeforces</div>
+            <div class="log-hint">Any type counts for Green. <strong style="color:var(--teal)">Editorial</strong> specifically required for Red floor.</div>
+            <div class="chip-group">
+              <div class="chip-wrap cf-problem" id="cw-cf-problem">
+                <button class="chip-adj minus" onclick="chipAdj('cf','problem',-1)">−</button>
+                <span class="chip-label">Problem</span><span class="chip-count" id="cnt-cf-problem">0</span>
+                <button class="chip-adj plus" onclick="chipAdj('cf','problem',+1)">+</button>
+              </div>
+              <div class="chip-wrap cf-contest" id="cw-cf-contest">
+                <button class="chip-adj minus" onclick="chipAdj('cf','contest',-1)">−</button>
+                <span class="chip-label">Contest</span><span class="chip-count" id="cnt-cf-contest">0</span>
+                <button class="chip-adj plus" onclick="chipAdj('cf','contest',+1)">+</button>
+              </div>
+              <div class="chip-wrap cf-editorial" id="cw-cf-editorial">
+                <button class="chip-adj minus" onclick="chipAdj('cf','editorial',-1)">−</button>
+                <span class="chip-label">Editorial</span><span class="chip-count" id="cnt-cf-editorial">0</span>
+                <button class="chip-adj plus" onclick="chipAdj('cf','editorial',+1)">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- CS -->
+        <div class="log-row">
+          <div class="log-icon blue"><i class="ti ti-books"></i></div>
+          <div class="log-meta">
+            <div class="log-name">CS Topic</div>
+            <div class="log-hint">5-10 pages or 1 concept — e.g. Deadlock, ACID, TCP handshake. Counts on every tier.</div>
+            <div class="chip-group">
+              <div class="chip-wrap cs-os" id="cw-cs-os">
+                <button class="chip-adj minus" onclick="chipAdj('cs','os',-1)">−</button>
+                <span class="chip-label">OS</span><span class="chip-count" id="cnt-cs-os">0</span>
+                <button class="chip-adj plus" onclick="chipAdj('cs','os',+1)">+</button>
+              </div>
+              <div class="chip-wrap cs-dbms" id="cw-cs-dbms">
+                <button class="chip-adj minus" onclick="chipAdj('cs','dbms',-1)">−</button>
+                <span class="chip-label">DBMS</span><span class="chip-count" id="cnt-cs-dbms">0</span>
+                <button class="chip-adj plus" onclick="chipAdj('cs','dbms',+1)">+</button>
+              </div>
+              <div class="chip-wrap cs-gen" id="cw-cs-gen">
+                <button class="chip-adj minus" onclick="chipAdj('cs','gen',-1)">−</button>
+                <span class="chip-label">CS General</span><span class="chip-count" id="cnt-cs-gen">0</span>
+                <button class="chip-adj plus" onclick="chipAdj('cs','gen',+1)">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- COMMIT -->
+        <div class="log-row" style="border-bottom:none;align-items:center">
+          <div class="log-icon amber"><i class="ti ti-brand-github"></i></div>
+          <div class="log-meta">
+            <div class="log-name">Commit pushed</div>
+            <div class="log-hint">Real commit only — thinking about it doesn't count. Required for Green only.</div>
+          </div>
+          <label class="toggle" style="margin-top:0">
+            <input type="checkbox" id="commit">
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+      </div><!-- /log-grid -->
+
+      <!-- LIVE TIER CHECKLIST -->
+      <div id="tier-checklist"></div>
+
+      <!-- NOTES -->
+      <div style="margin-top:1rem">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">Notes (optional)</div>
+        <textarea class="notes-area" id="notes-input" placeholder="What did you work on? Any blockers or wins?"></textarea>
+      </div>
+
+      <div class="status-bar">
+        <span id="day-badge" class="day-badge gray">—</span>
+        <span id="score-display" style="font-size:12px;color:var(--muted)">0/5 tasks</span>
+      </div>
+      <div class="nudge" id="nudge-box"></div>
+
+      <button class="save-btn" id="save-btn" onclick="saveEntry()">
+        <i class="ti ti-device-floppy"></i> <span id="save-btn-label">Save today's progress</span>
+      </button>
+      <div class="save-status" id="save-status"></div>
+    </div><!-- /card -->
+
+    <!-- PAST-DAY LOG PICKER -->
+    <div class="card card-sm" style="margin-top:10px">
+      <div class="section-eyebrow">Log a missed day</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:.75rem;line-height:1.55">Forgot to log yesterday? Pick any past date to fill it in. Your existing data will not be touched — only the selected day is updated.</div>
+      <div class="past-picker-row">
+        <input type="date" id="past-date-input" class="date-input" style="flex:1">
+        <button class="action-btn" onclick="loadPastDay()" style="border-color:rgba(167,139,250,0.4);color:var(--accent)">
+          <i class="ti ti-clock-edit"></i> Edit this day
+        </button>
+      </div>
+      <div id="past-day-msg" style="font-size:11px;color:var(--muted);margin-top:.5rem"></div>
+    </div>
+
+    <!-- 14-DAY CHART -->
+    <div class="card card-sm" style="margin-top:10px">
+      <div class="section-eyebrow">Last 14 days</div>
+      <div class="bar-chart" id="weekly-chart"></div>
+    </div>
+  </div><!-- /tab-log -->
+
+  <!-- ═══════════════════════════════════════════ TAB: BACKLOG ═══ -->
+  <div id="tab-backlog" style="display:none">
+    <div class="grid2">
+      <div class="card">
+        <div class="section-eyebrow">Backlog</div>
+        <div id="backlog-rows"></div>
+        <div class="tomorrow-box" id="tomorrow-box" style="display:none">
+          <div class="tomorrow-lbl">Clear tomorrow</div>
+          <div id="tomorrow-rows"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-eyebrow">Day breakdown</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="day-breakdown"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ TAB: CALENDAR ═══ -->
+  <div id="tab-calendar" style="display:none">
+    <div class="card">
+      <div class="month-nav">
+        <button onclick="prevMonth()"><i class="ti ti-arrow-left"></i></button>
+        <span id="month-title"></span>
+        <button onclick="nextMonth()"><i class="ti ti-arrow-right"></i></button>
+      </div>
+      <div class="cal-header">
+        <div class="cal-head">Sun</div><div class="cal-head">Mon</div><div class="cal-head">Tue</div>
+        <div class="cal-head">Wed</div><div class="cal-head">Thu</div><div class="cal-head">Fri</div>
+        <div class="cal-head">Sat</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="dot green"></div>Green — All 5 (Med/Hard LC)</div>
+        <div class="legend-item"><div class="dot yellow"></div>Yellow — LC + Rev + CS</div>
+        <div class="legend-item"><div class="dot red"></div>Red — Survival 60 min</div>
+        <div class="legend-item"><div class="dot missed"></div>Missed — below floor</div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:.6rem"><i class="ti ti-click" style="font-size:11px"></i> Click any past day to edit it</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ TAB: EXPORT ═══ -->
+  <div id="tab-export" style="display:none">
+    <div class="card">
+      <div class="section-eyebrow">GitHub README badge</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:.5rem">Copy this Markdown to your GitHub profile README.</div>
+      <div class="readme-section" id="badge-text"></div>
+      <div style="display:flex;gap:8px;margin-top:.75rem;flex-wrap:wrap">
+        <button class="action-btn" onclick="copyBadge()"><i class="ti ti-copy"></i> Copy Markdown</button>
+        <button class="action-btn" onclick="exportJSON()"><i class="ti ti-download"></i> Export data (.json)</button>
+        <button class="action-btn" onclick="importJSON()"><i class="ti ti-upload"></i> Import data</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
+      </div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div class="section-eyebrow">Lifetime stats</div>
+      <div class="stats-row" style="margin-bottom:0;grid-template-columns:repeat(5,1fr)">
+        <div class="stat"><div class="stat-num green" id="ls-green">0</div><div class="stat-lbl">Green</div></div>
+        <div class="stat"><div class="stat-num amber" id="ls-yellow">0</div><div class="stat-lbl">Yellow</div></div>
+        <div class="stat"><div class="stat-num red"   id="ls-red">0</div><div class="stat-lbl">Red</div></div>
+        <div class="stat"><div class="stat-num" style="color:#fca5a5" id="ls-missed">0</div><div class="stat-lbl">Missed</div></div>
+        <div class="stat"><div class="stat-num accent" id="ls-days">0</div><div class="stat-lbl">Total</div></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div class="section-eyebrow">Cloud sync (cross-device)</div>
+      <div id="cloud-sync-box">Loading…</div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div class="section-eyebrow">Data safety</div>
+      <!-- Safety strip always visible -->
+      <div id="safety-strip-box"></div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:.6rem" id="storage-mode-text">Checking storage…</div>
+      <div style="font-size:11px;color:var(--subtle)" id="last-backup-text"></div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   CORE STATE
+════════════════════════════════════════════════════════════════════ */
+const STORAGE_KEY = 'devtracker-v2';
+const today       = new Date();
+const todayStr    = fmt(today);
+let viewYear      = today.getFullYear();
+let viewMonth     = today.getMonth();
+let entries       = {};           // { 'YYYY-MM-DD': entryObj }
+let live          = emptyEntry(); // what's shown in the form right now
+let editingDate   = todayStr;     // which date the form is currently for
+let autosaveTimer = null;
+let artifactStorageAvailable = (typeof window !== 'undefined' && typeof window.storage !== 'undefined');
+
+/* Promise that resolves when Firebase is ready (or fails gracefully) */
+window.firebaseConfigured = false;
+window._fbResolve = null;
+window.firebaseReady = new Promise(function(res){ window._fbResolve = res; });
+
+function fmt(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function emptyEntry(){
+  return {lc_new:{easy:0,medium:0,hard:0},lc_rev:{easy:0,medium:0,hard:0},cf:{problem:0,contest:0,editorial:0},cs:{os:0,dbms:0,gen:0},commit:false,notes:''};
+}
+function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   CHIPS
+════════════════════════════════════════════════════════════════════ */
+function chipAdj(field,sub,delta){
+  live[field][sub]=Math.max(0,(live[field][sub]||0)+delta);
+  refreshChips(); updateBadge(); queueAutosave();
+}
+const CHIP_MAP=[
+  ['cw-lc-new-easy',  'lc_new','easy',  'cnt-lc-new-easy'],
+  ['cw-lc-new-medium','lc_new','medium','cnt-lc-new-medium'],
+  ['cw-lc-new-hard',  'lc_new','hard',  'cnt-lc-new-hard'],
+  ['cw-lc-rev-easy',  'lc_rev','easy',  'cnt-lc-rev-easy'],
+  ['cw-lc-rev-medium','lc_rev','medium','cnt-lc-rev-medium'],
+  ['cw-lc-rev-hard',  'lc_rev','hard',  'cnt-lc-rev-hard'],
+  ['cw-cf-problem',   'cf','problem',   'cnt-cf-problem'],
+  ['cw-cf-contest',   'cf','contest',   'cnt-cf-contest'],
+  ['cw-cf-editorial', 'cf','editorial', 'cnt-cf-editorial'],
+  ['cw-cs-os',        'cs','os',        'cnt-cs-os'],
+  ['cw-cs-dbms',      'cs','dbms',      'cnt-cs-dbms'],
+  ['cw-cs-gen',       'cs','gen',       'cnt-cs-gen'],
+];
+function refreshChips(){
+  CHIP_MAP.forEach(function([cwId,field,sub,cntId]){
+    const v=live[field][sub]||0;
+    const cw=document.getElementById(cwId);
+    const cnt=document.getElementById(cntId);
+    if(!cw||!cnt) return;
+    cnt.textContent=v;
+    cw.classList.toggle('active',v>0);
+    const m=cw.querySelector('.chip-adj.minus');
+    if(m) m.style.opacity=v>0?'1':'0.3';
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TIER LOGIC
+════════════════════════════════════════════════════════════════════ */
+function totalLcNew(e){ return (e.lc_new.easy||0)+(e.lc_new.medium||0)+(e.lc_new.hard||0); }
+function totalLcRev(e){ return (e.lc_rev.easy||0)+(e.lc_rev.medium||0)+(e.lc_rev.hard||0); }
+function totalCf(e){   return (e.cf.problem||0)+(e.cf.contest||0)+(e.cf.editorial||0); }
+function totalCs(e){   return (e.cs.os||0)+(e.cs.dbms||0)+(e.cs.gen||0); }
+function lcMedOrHard(e){ return (e.lc_new.medium||0)+(e.lc_new.hard||0); }
+function csOsOrDbms(e){  return (e.cs.os||0)+(e.cs.dbms||0); }
+
+function meetsGreen(e){  return lcMedOrHard(e)>=1 && totalLcRev(e)>=1 && totalCf(e)>=1 && totalCs(e)>=1 && !!e.commit; }
+function meetsYellow(e){ return totalLcNew(e)>=1 && totalLcRev(e)>=1 && totalCs(e)>=1; }
+function meetsRed(e){    return totalLcRev(e)>=1 && totalCs(e)>=1 && totalCf(e)>=1; }
+
+function dayType(e){
+  if(!e) return 'missed';
+  const en=normalise(e);
+  if(meetsGreen(en))  return 'green';
+  if(meetsYellow(en)) return 'yellow';
+  if(meetsRed(en))    return 'red';
+  return 'missed';
+}
+function dayScore(e){
+  const en=normalise(e);
+  return (lcMedOrHard(en)>=1?1:0)+(totalLcRev(en)>=1?1:0)+(totalCf(en)>=1?1:0)+(totalCs(en)>=1?1:0)+(en.commit?1:0);
+}
+function normalise(e){
+  if(!e) return emptyEntry();
+  if(typeof e.lc_new==='object'&&e.lc_new!==null) return e;
+  // legacy numeric format
+  return {lc_new:{easy:0,medium:e.lc_new||0,hard:0},lc_rev:{easy:0,medium:e.lc_rev||0,hard:0},
+    cf:{problem:0,contest:0,editorial:e.cf||0},cs:{os:0,dbms:e.cs||0,gen:0},
+    commit:!!e.commit,notes:e.notes||'',_ts:e._ts||0};
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TIER CHECKLIST
+════════════════════════════════════════════════════════════════════ */
+function renderTierChecklist(){
+  const e=live;
+  const g=[
+    {label:'New LC Medium or Hard',       done:lcMedOrHard(e)>=1},
+    {label:'Reviewed 1 LC problem',        done:totalLcRev(e)>=1},
+    {label:'CF problem/contest/editorial', done:totalCf(e)>=1},
+    {label:'CS / OS / DBMS topic',         done:totalCs(e)>=1},
+    {label:'Commit pushed',                done:!!e.commit},
+  ];
+  const y=[
+    {label:'Any new LC problem',   done:totalLcNew(e)>=1},
+    {label:'Reviewed 1 LC problem',done:totalLcRev(e)>=1},
+    {label:'CS / OS / DBMS topic', done:totalCs(e)>=1},
+  ];
+  const r=[
+    {label:'Review 1 old LC note',    done:totalLcRev(e)>=1},
+    {label:'Read 1 OS/DBMS note',     done:csOsOrDbms(e)>=1},
+    {label:'Read 1 CF editorial',     done:(e.cf.editorial||0)>=1},
+  ];
+  const rows=items=>items.map(i=>`<div class="tier-check-row ${i.done?'done':''}"><div class="tier-dot ${i.done?'done':''}"></div>${i.label}</div>`).join('');
+  document.getElementById('tier-checklist').innerHTML=`
+    <div class="tier-checklist-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:.7rem">
+      <div class="tier-check"><div class="tier-check-title" style="color:var(--green-bright)">🟢 Green (${g.filter(x=>x.done).length}/5)</div>${rows(g)}</div>
+      <div class="tier-check"><div class="tier-check-title" style="color:var(--amber)">🟡 Yellow (${y.filter(x=>x.done).length}/3)</div>${rows(y)}</div>
+      <div class="tier-check"><div class="tier-check-title" style="color:var(--red)">🔴 Red (${r.filter(x=>x.done).length}/3)</div>${rows(r)}</div>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   NUDGE BOX
+════════════════════════════════════════════════════════════════════ */
+function nudgeFor(e){
+  if(meetsGreen(e))  return {cls:'ok',  html:'<i class="ti ti-trophy"></i> Green day locked in — every requirement met.'};
+  if(meetsYellow(e)){
+    const gaps=[];
+    if(lcMedOrHard(e)<1) gaps.push('upgrade LC to Medium/Hard');
+    if(totalCf(e)<1)      gaps.push('add 1 CF activity (45 min)');
+    if(!e.commit)         gaps.push('push a commit');
+    return {cls:'info',html:'<i class="ti ti-alert-triangle"></i> <strong>Yellow day</strong> — to reach Green: '+gaps.join(', ')+'.'};
+  }
+  if(meetsRed(e)){
+    const gaps=[];
+    if(totalLcNew(e)<1) gaps.push('1 new LC problem');
+    if(totalCs(e)<1)     gaps.push('read a CS topic');
+    return {cls:'floor',html:'<i class="ti ti-shield-check"></i> <strong>Red day</strong> — floor met. To reach Yellow: add '+gaps.join(' + ')+'.'};
+  }
+  const need=[];
+  if(totalLcRev(e)<1)       need.push('review 1 old LC note (20 min)');
+  if(csOsOrDbms(e)<1)       need.push('read 1 OS/DBMS note (20 min)');
+  if((e.cf.editorial||0)<1) need.push('read 1 CF editorial (20 min)');
+  return {cls:'warn',html:'<i class="ti ti-alert-circle"></i> <strong>Below floor</strong> — need: '+need.join(', ')+'. Never a zero day.'};
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   UPDATE BADGE (UI only — never touches entries)
+════════════════════════════════════════════════════════════════════ */
+function updateBadge(){
+  const e=live;
+  const hasAny=(totalLcNew(e)+totalLcRev(e)+totalCf(e)+totalCs(e))>0||e.commit;
+  const t=dayType(e); const score=dayScore(e);
+  const badge=document.getElementById('day-badge');
+  const icons={green:'check',yellow:'alert-triangle',red:'shield-check',missed:'alert-circle'};
+  const labels={green:'Green day',yellow:'Yellow day',red:'Red day',missed:'Below minimum'};
+  badge.className='day-badge '+(hasAny?t:'gray');
+  badge.innerHTML=hasAny?`<i class="ti ti-${icons[t]}" style="font-size:13px"></i> ${labels[t]}`:'—';
+  document.getElementById('score-display').textContent=score+'/5 tasks';
+  const nb=document.getElementById('nudge-box');
+  if(!hasAny){ nb.className='nudge warn'; nb.innerHTML='<i class="ti ti-alert-circle"></i> Nothing logged yet — floor is 60 min: review 1 LC note + read 1 OS/DBMS note + read 1 CF editorial.'; }
+  else { const n=nudgeFor(e); nb.className='nudge '+n.cls; nb.innerHTML=n.html; }
+  renderTierChecklist();
+}
+
+document.getElementById('commit').addEventListener('change',function(){ live.commit=this.checked; updateBadge(); queueAutosave(); });
+document.getElementById('notes-input').addEventListener('input',function(){ live.notes=this.value; queueAutosave(); });
+
+function toggleRules(){
+  const box=document.getElementById('rules-box'); const chev=document.getElementById('rules-chevron');
+  box.classList.toggle('open'); chev.className='ti '+(box.classList.contains('open')?'ti-chevron-up':'ti-chevron-down');
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAST-DAY EDITING
+════════════════════════════════════════════════════════════════════ */
+function setupPastDateInput(){
+  const inp=document.getElementById('past-date-input');
+  // max = yesterday
+  const yest=new Date(today); yest.setDate(yest.getDate()-1);
+  inp.max=fmt(yest);
+  // min = 90 days ago (reasonable look-back window)
+  const minDate=new Date(today); minDate.setDate(minDate.getDate()-90);
+  inp.min=fmt(minDate);
+  // default = yesterday
+  inp.value=fmt(yest);
+}
+
+function loadPastDay(){
+  const inp=document.getElementById('past-date-input');
+  const ds=inp.value;
+  if(!ds){ showPastMsg('Pick a date first.','warn'); return; }
+  if(ds>=todayStr){ showPastMsg('Use the main form for today. This picker is for past days only.','warn'); return; }
+  // Switch form to editing that date
+  editingDate=ds;
+  const existing=entries[ds]?normalise(entries[ds]):emptyEntry();
+  applyEntryToUI(existing);
+  // Update form header
+  document.getElementById('today-label').textContent=ds+' (past)';
+  // Show editing banner
+  const banner=document.getElementById('editing-banner');
+  const lbl=document.getElementById('editing-date-label');
+  banner.style.display='flex';
+  lbl.textContent=ds;
+  // Update save button
+  document.getElementById('save-btn-label').textContent='Save '+ds;
+  showPastMsg(entries[ds]?'Loaded existing entry for '+ds+'. Edit and save.':'No entry yet for '+ds+'. Fill it in and save.', entries[ds]?'ok':'info');
+  // Scroll to form
+  document.getElementById('tab-log').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function returnToToday(){
+  editingDate=todayStr;
+  const existing=entries[todayStr]?normalise(entries[todayStr]):emptyEntry();
+  applyEntryToUI(existing);
+  document.getElementById('today-label').textContent=todayStr;
+  document.getElementById('editing-banner').style.display='none';
+  document.getElementById('save-btn-label').textContent="Save today's progress";
+  showPastMsg('','');
+  render(); // refresh lifetime stats when returning
+}
+
+function showPastMsg(msg,type){
+  const el=document.getElementById('past-day-msg'); if(!el)return;
+  const colors={warn:'var(--amber)',ok:'var(--green-bright)',info:'var(--blue)','':'var(--muted)'};
+  el.textContent=msg; el.style.color=colors[type]||'var(--muted)';
+}
+
+// Calendar click → edit that day (or return to today if today's cell clicked)
+function calDayClick(ds){
+  if(ds>todayStr) return; // future only blocked
+  // Switch to log tab
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab')[0].classList.add('active');
+  switchTabDirect('log');
+
+  if(ds===todayStr){
+    returnToToday();
+    return;
+  }
+
+  // Load past day into form
+  editingDate=ds;
+  const existing=entries[ds]?normalise(entries[ds]):emptyEntry();
+  applyEntryToUI(existing);
+  document.getElementById('today-label').textContent=ds+' (past)';
+  const banner=document.getElementById('editing-banner');
+  document.getElementById('editing-date-label').textContent=ds;
+  banner.style.display='flex';
+  document.getElementById('save-btn-label').textContent='Save '+ds;
+  document.getElementById('past-date-input').value=ds;
+  showPastMsg(entries[ds]?'Loaded existing entry for '+ds+'. Edit and save.':'No entry yet for '+ds+'. Fill it in and save.',entries[ds]?'ok':'info');
+  document.getElementById('tab-log').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SAVE / LOAD
+════════════════════════════════════════════════════════════════════ */
+function getLive(){
+  const out=deepClone(live);
+  out.notes=document.getElementById('notes-input').value.trim();
+  return out;
+}
+
+function applyEntryToUI(e){
+  live=deepClone(e);
+  document.getElementById('commit').checked=!!e.commit;
+  document.getElementById('notes-input').value=e.notes||'';
+  refreshChips(); updateBadge();
+}
+
+/* Autosave — writes only to the currently editing date, never calls render() */
+function queueAutosave(){
+  clearTimeout(autosaveTimer);
+  autosaveTimer=setTimeout(function(){
+    const e=getLive(); e._ts=Date.now();
+    // SAFETY: deep clone before writing so live references can't corrupt entries
+    entries[editingDate]=deepClone(e);
+    persist(); // DO NOT call render() here
+  },600);
+}
+
+function saveEntry(){
+  const e=getLive(); e._ts=Date.now();
+  entries[editingDate]=deepClone(e);
+  persist().then(function(){
+    render();
+    const t=dayType(e);
+    const labels={green:'Green day ✓',yellow:'Yellow day ✓',red:'Red day ✓',missed:'Logged (below minimum)'};
+    const badge=document.getElementById('day-badge');
+    badge.className='day-badge '+(dayScore(e)===0?'missed':t);
+    badge.innerHTML='<i class="ti ti-check" style="font-size:13px"></i> Saved — '+labels[t];
+    // Refresh calendar if it's the active tab
+    if(document.getElementById('tab-calendar').style.display!=='none') renderCal();
+    // If was editing past day, show confirmation
+    if(editingDate!==todayStr){
+      showPastMsg('Saved '+editingDate+' successfully.','ok');
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PERSISTENCE — triple-layer with regression guard
+   localStorage  → always (fast, survives page reload)
+   artifactStorage → when available (survives across Claude sessions)
+   Firebase       → when signed in (cross-device)
+
+   REGRESSION GUARD: before writing, check that the new payload never
+   has fewer date keys than what's already stored in each backend.
+   If it does, something went wrong upstream — abort that write and alert.
+════════════════════════════════════════════════════════════════════ */
+function mergeEntryMaps(a,b){
+  // merge b into a, keeping the entry with the higher _ts per date
+  const out=Object.assign({},a);
+  Object.keys(b).forEach(function(k){
+    if(!out[k]){ out[k]=b[k]; return; }
+    if((b[k]._ts||0)>(out[k]._ts||0)) out[k]=b[k];
+  });
+  return out;
+}
+
+function safeJsonParse(s){
+  try{ const p=JSON.parse(s); return (p&&typeof p==='object')?p:null; }catch(e){ return null; }
+}
+
+async function loadAll(){
+  // Read from all three backends independently — never let one backend
+  // failure wipe data from another
+  let artData=null, local=null, fbData=null;
+
+  // 1. Artifact storage
+  if(artifactStorageAvailable){
+    try{ const r=await window.storage.get(STORAGE_KEY,false); if(r&&r.value){ artData=safeJsonParse(r.value); } }catch(e){ console.warn('Artifact storage read failed:',e); }
+  }
+
+  // 2. localStorage
+  try{ const s=localStorage.getItem(STORAGE_KEY); if(s){ local=safeJsonParse(s); } }catch(e){ console.warn('localStorage read failed:',e); }
+
+  // 3. Firebase
+  try{
+    await Promise.race([window.firebaseReady, new Promise(r=>setTimeout(r,4000))]);
+    if(typeof window.firebaseGetEntries==='function' && typeof window.firebaseCurrentUser==='function' && window.firebaseCurrentUser()){
+      const fbJson=await window.firebaseGetEntries();
+      if(fbJson){ fbData=safeJsonParse(fbJson); }
+    }
+  }catch(e){ console.warn('Firebase read failed:',e); }
+
+  // Merge all — always additive, never destructive
+  let merged=mergeEntryMaps(artData||{}, local||{});
+  merged=mergeEntryMaps(merged, fbData||{});
+
+  // Regression guard: merged must never have fewer keys than what we already had
+  const before=Object.keys(entries).length;
+  const after=Object.keys(merged).length;
+  if(before>0 && after<before){
+    console.error('REGRESSION GUARD: merged result has fewer entries than current state. Aborting overwrite. Before:',before,'After:',after);
+    // Still merge the two so we keep everything
+    entries=mergeEntryMaps(entries,merged);
+  } else {
+    entries=merged;
+  }
+
+  // Write back the merged result so all backends stay in sync
+  await persistSafe();
+}
+
+async function persist(){
+  return persistSafe();
+}
+
+async function persistSafe(){
+  const json=JSON.stringify(entries);
+  const count=Object.keys(entries).length;
+
+  // Regression guard before each write: never write fewer keys than before
+  function guardedWrite(label, writeFn, readFn){
+    return readFn().then(function(existing){
+      const existingCount=existing?Object.keys(existing).length:0;
+      if(existingCount>count){
+        console.error('REGRESSION GUARD blocked write to',label,': existing',existingCount,'new',count);
+        return false;
+      }
+      return writeFn().then(()=>true).catch(e=>{ console.warn(label,'write failed:',e); return false; });
+    }).catch(function(){
+      // If we can't read existing, write anyway (first time)
+      return writeFn().then(()=>true).catch(e=>{ console.warn(label,'write failed:',e); return false; });
+    });
+  }
+
+  let artOk=null, localOk=false, fbOk=null;
+
+  // 1. localStorage (synchronous, wrap in promise)
+  try{
+    const existingLocal=safeJsonParse(localStorage.getItem(STORAGE_KEY)||'{}');
+    const existCount=(existingLocal&&typeof existingLocal==='object')?Object.keys(existingLocal).length:0;
+    if(existCount<=count){
+      localStorage.setItem(STORAGE_KEY,json); localOk=true;
+    } else {
+      console.error('GUARD: localStorage write blocked. Existing:',existCount,'New:',count);
+      localOk=false;
+    }
+  }catch(e){ localOk=false; }
+
+  // 2. Artifact storage
+  if(artifactStorageAvailable){
+    try{
+      let existCount=0;
+      try{ const r=await window.storage.get(STORAGE_KEY,false); if(r&&r.value){ const p=safeJsonParse(r.value); existCount=p?Object.keys(p).length:0; } }catch(e){}
+      if(existCount<=count){
+        await window.storage.set(STORAGE_KEY,json,false); artOk=true;
+      } else {
+        console.error('GUARD: artifact storage write blocked. Existing:',existCount,'New:',count); artOk=false;
+      }
+    }catch(e){ artOk=false; }
+  }
+
+  // 3. Firebase
+  const fbUser=(typeof window.firebaseCurrentUser==='function')?window.firebaseCurrentUser():null;
+  if(fbUser&&typeof window.firebaseSetEntries==='function'&&typeof window.firebaseGetEntries==='function'){
+    try{
+      let existCount=0;
+      try{ const fbj=await window.firebaseGetEntries(); if(fbj){ const p=safeJsonParse(fbj); existCount=p?Object.keys(p).length:0; } }catch(e){}
+      if(existCount<=count){
+        await window.firebaseSetEntries(json); fbOk=true;
+      } else {
+        console.error('GUARD: Firebase write blocked. Existing:',existCount,'New:',count); fbOk=false;
+      }
+    }catch(e){ fbOk=false; }
+  }
+
+  updateSaveStatus(artOk,localOk,fbOk);
+  updateSafetyStrip(artOk,localOk,fbOk);
+  return {artOk,localOk,fbOk};
+}
+
+function updateSaveStatus(artOk,localOk,fbOk){
+  const el=document.getElementById('save-status'); if(!el)return;
+  const parts=[];
+  if(fbOk===true)  parts.push('<span class="dot-ok"><i class="ti ti-cloud-check"></i></span> Cloud synced');
+  if(fbOk===false) parts.push('<span class="dot-warn"><i class="ti ti-cloud-off"></i></span> Cloud sync failed');
+  if(artifactStorageAvailable){
+    parts.push(artOk===true?'<span class="dot-ok"><i class="ti ti-device-floppy"></i></span> Saved'+(localOk?' + local':''):'<span class="dot-warn"><i class="ti ti-alert-triangle"></i></span> Save issue — export backup!');
+  } else {
+    parts.push(localOk?'<span class="dot-warn"><i class="ti ti-device-floppy"></i></span> Browser only — export regularly':'<span style="color:var(--red)"><i class="ti ti-alert-triangle"></i></span> Save FAILED — export now!');
+  }
+  el.innerHTML=parts.join(' · ');
+}
+
+function updateSafetyStrip(artOk,localOk,fbOk){
+  const box=document.getElementById('safety-strip-box'); if(!box)return;
+  const isSafe=localOk||artOk===true||fbOk===true;
+  const fbUser=(typeof window.firebaseCurrentUser==='function')&&window.firebaseCurrentUser();
+  let msg='';
+  if(fbUser&&fbOk===true) msg='<i class="ti ti-cloud-check"></i> Synced to Firebase — safe across devices.';
+  else if(artOk===true&&localOk) msg='<i class="ti ti-shield-check"></i> Saved to artifact storage + browser backup — two redundant copies.';
+  else if(localOk) msg='<i class="ti ti-device-floppy"></i> Browser-only storage. Sign in to Firebase or export regularly.';
+  else msg='<i class="ti ti-alert-triangle"></i> Save issue detected — export a backup immediately!';
+  box.innerHTML=`<div class="safety-strip ${isSafe?'safe':'warn'}">${msg}</div>`;
+
+  const modeEl=document.getElementById('storage-mode-text');
+  if(modeEl){
+    if(fbUser||fbOk===true) modeEl.innerHTML='Synced to your Firebase account — sign in on any device to access your data.';
+    else if(window.firebaseConfigured) modeEl.innerHTML='Firebase configured but not signed in. Sign in under Cloud sync to enable cross-device access.';
+    else if(artifactStorageAvailable) modeEl.innerHTML='Saved to Claude artifact storage and mirrored to browser localStorage (two independent copies).';
+    else modeEl.innerHTML='Saved to this browser only. Export a backup regularly.';
+  }
+}
+
+function checkBackupReminder(){
+  const banner=document.getElementById('backup-banner'); if(!banner)return;
+  let last=0; try{ last=parseInt(localStorage.getItem(STORAGE_KEY+'-last-backup'))||0; }catch(e){}
+  if(Object.keys(entries).length>=3&&(!last||Date.now()-last>7*24*60*60*1000)) banner.style.display='flex';
+  else banner.style.display='none';
+}
+
+function load(){
+  loadAll().then(function(){
+    // Restore today's entry to UI
+    if(entries[todayStr]) applyEntryToUI(normalise(entries[todayStr]));
+    else applyEntryToUI(emptyEntry()); // clear form if no entry for today
+    editingDate=todayStr;
+    const ds=today.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    document.getElementById('today-chip').textContent=ds;
+    document.getElementById('today-label').textContent=todayStr;
+    setupPastDateInput();
+    render(); updateBadge(); checkBackupReminder(); renderCloudUI();
+    // Show initial safety strip state
+    const localHasData=!!localStorage.getItem(STORAGE_KEY);
+    updateSafetyStrip(artifactStorageAvailable||null, localHasData, null);
+  }).catch(function(err){
+    console.error('load() error:',err);
+    applyEntryToUI(emptyEntry());
+    render(); updateBadge(); renderCloudUI();
+    updateSafetyStrip(null, false, null);
+    const modeEl=document.getElementById('storage-mode-text');
+    if(modeEl) modeEl.innerHTML='<span style="color:var(--red)">Error loading data.</span> If you have a backup, use Import on the Export tab.';
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CALCULATIONS  (pure functions, never mutate entries)
+════════════════════════════════════════════════════════════════════ */
+function calcStreak(){
+  let streak=0, d=new Date(today);
+  while(true){ const ds=fmt(d),e=entries[ds]; if(!e||dayType(e)==='missed') break; streak++; d.setDate(d.getDate()-1); }
+  return streak;
+}
+function calcTotals(){
+  const t={lc_new:0,lc_rev:0,cf:0,cs:0,commits:0,green:0,yellow:0,red:0,missed:0,total:0};
+  Object.keys(entries).forEach(function(ds){
+    const e=normalise(entries[ds]);
+    t.lc_new+=totalLcNew(e); t.lc_rev+=totalLcRev(e); t.cf+=totalCf(e); t.cs+=totalCs(e);
+    t.commits+=e.commit?1:0; t[dayType(entries[ds])]++; t.total++;
+  });
+  return t;
+}
+function calcBacklog(){
+  const bl={lc_new:0,lc_rev:0,cf:0,cs:0,commits:0};
+  Object.keys(entries).sort().forEach(function(ds){
+    const e=normalise(entries[ds]);
+    bl.lc_new+=Math.max(0,1-totalLcNew(e)); bl.lc_rev+=Math.max(0,1-totalLcRev(e));
+    bl.cf+=Math.max(0,1-totalCf(e)); bl.cs+=Math.max(0,1-totalCs(e)); bl.commits+=e.commit?0:1;
+  });
+  return bl;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RENDER  (called only on load() and explicit saveEntry())
+════════════════════════════════════════════════════════════════════ */
+function render(){
+  const tot=calcTotals(), bl=calcBacklog(), streak=calcStreak();
+  document.getElementById('streak-num').textContent=streak;
+  document.getElementById('s-lc').textContent=tot.lc_new;
+  document.getElementById('s-lcrev').textContent=tot.lc_rev;
+  document.getElementById('s-cf').textContent=tot.cf;
+  document.getElementById('s-cs').textContent=tot.cs;
+  document.getElementById('s-commits').textContent=tot.commits;
+  renderBacklog(bl); renderDayBreakdown(tot); renderWeeklyChart(); renderExport(tot,streak);
+}
+
+function renderBacklog(bl){
+  const items=[{label:'LC new',key:'lc_new'},{label:'LC review',key:'lc_rev'},{label:'CF activity',key:'cf'},{label:'CS topics',key:'cs'},{label:'Commits',key:'commits'}];
+  document.getElementById('backlog-rows').innerHTML=items.map(i=>`<div class="bl-row"><span class="bl-name">${i.label}</span><span class="bl-val ${bl[i.key]>0?'owed':'clear'}">${bl[i.key]>0?'+'+bl[i.key]+' owed':'<i class="ti ti-check" style="font-size:12px"></i> clear'}</span></div>`).join('');
+  const hasBl=Object.values(bl).some(v=>v>0);
+  const tbox=document.getElementById('tomorrow-box');
+  if(hasBl){ tbox.style.display='block'; document.getElementById('tomorrow-rows').innerHTML=items.filter(i=>bl[i.key]>0).map(i=>`<div class="tomorrow-row">${i.label}: do <strong>${1+bl[i.key]}</strong> (1 today + ${bl[i.key]} backlog)</div>`).join(''); }
+  else tbox.style.display='none';
+}
+
+function renderDayBreakdown(tot){
+  const total=tot.total||1;
+  const rows=[{label:'Green days',val:tot.green,pct:Math.round(tot.green/total*100),color:'var(--green)'},{label:'Yellow days',val:tot.yellow,pct:Math.round(tot.yellow/total*100),color:'var(--amber)'},{label:'Red days',val:tot.red,pct:Math.round(tot.red/total*100),color:'var(--red)'},{label:'Missed days',val:tot.missed,pct:Math.round(tot.missed/total*100),color:'#fca5a5'}];
+  document.getElementById('day-breakdown').innerHTML=rows.map(r=>`<div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;color:var(--muted)">${r.label}</span><span style="font-size:12px;font-weight:600;color:${r.color}">${r.val} (${r.pct}%)</span></div><div style="height:5px;background:var(--surface2);border-radius:3px;overflow:hidden"><div style="height:100%;width:${r.pct}%;background:${r.color};opacity:.65;border-radius:3px"></div></div></div>`).join('');
+}
+
+function renderWeeklyChart(){
+  const chart=document.getElementById('weekly-chart');
+  const days=[];
+  for(let i=13;i>=0;i--){ const d=new Date(today); d.setDate(d.getDate()-i); days.push(fmt(d)); }
+  chart.innerHTML=days.map(ds=>{
+    const day=parseInt(ds.slice(8));
+    const e=entries[ds];
+    if(!e) return `<div class="bar-wrap"><div class="bar" style="height:3px;background:var(--border)"></div><div class="bar-lbl">${day}</div></div>`;
+    const h=Math.round((dayScore(e)/5)*76)+4;
+    return `<div class="bar-wrap"><div class="bar ${dayType(e)}" style="height:${h}px"></div><div class="bar-lbl">${day}</div></div>`;
+  }).join('');
+}
+
+function renderCal(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('month-title').textContent=months[viewMonth]+' '+viewYear;
+  const first=new Date(viewYear,viewMonth,1).getDay();
+  const dInM=new Date(viewYear,viewMonth+1,0).getDate();
+  let html='';
+  for(let i=0;i<first;i++) html+='<div class="cal-day blank"></div>';
+  for(let d=1;d<=dInM;d++){
+    const ds=viewYear+'-'+String(viewMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const isToday=ds===todayStr;
+    const isFuture=new Date(viewYear,viewMonth,d)>today;
+    let cls='cal-day', click='', tip='';
+    if(isFuture){ cls+=' future'; }
+    else {
+      cls+=' clickable';
+      click=`onclick="calDayClick('${ds}')"`;
+      if(entries[ds]){
+        const en=normalise(entries[ds]);
+        const t=dayType(entries[ds]);
+        cls+=' '+t+'-day';
+        const lcTop=en.lc_new.hard>0?'hard':en.lc_new.medium>0?'medium':en.lc_new.easy>0?'easy':null;
+        const cfType=en.cf.contest>0?'Contest':en.cf.editorial>0?'Editorial':en.cf.problem>0?'Problem':'—';
+        const tcolor=t==='green'?'var(--green)':t==='yellow'?'var(--amber)':t==='red'?'var(--red)':'#fca5a5';
+        tip=`<div class="cal-tip">
+          <div class="cal-tip-date">${ds}</div>
+          <div class="cal-tip-row"><span class="tip-lbl">Tier</span><span class="tip-val" style="color:${tcolor}">${t}</span></div>
+          <div class="cal-tip-row"><span class="tip-lbl">LC new</span><span class="tip-val">${totalLcNew(en)}${lcTop?'<span class="tip-pill '+lcTop+'">'+lcTop[0].toUpperCase()+'</span>':''}</span></div>
+          <div class="cal-tip-row"><span class="tip-lbl">LC rev</span><span class="tip-val">${totalLcRev(en)}</span></div>
+          <div class="cal-tip-row"><span class="tip-lbl">CF</span><span class="tip-val">${cfType}</span></div>
+          <div class="cal-tip-row"><span class="tip-lbl">CS</span><span class="tip-val">${totalCs(en)}</span></div>
+          <div class="cal-tip-row"><span class="tip-lbl">Commit</span><span class="tip-val">${entries[ds].commit?'✓':'—'}</span></div>
+          <div class="cal-tip-edit"><i class="ti ti-pencil" style="font-size:10px"></i> Click to edit</div>
+        </div>`;
+      } else {
+        tip=`<div class="cal-tip"><div class="cal-tip-date">${ds}</div><div style="color:var(--muted);font-size:11px">No entry — click to log</div></div>`;
+      }
+    }
+    if(isToday) cls+=' today-marker';
+    html+=`<div class="${cls}" ${click}>${d}${tip}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+}
+
+function renderExport(tot,streak){
+  document.getElementById('ls-green').textContent=tot.green;
+  document.getElementById('ls-yellow').textContent=tot.yellow;
+  document.getElementById('ls-red').textContent=tot.red;
+  document.getElementById('ls-missed').textContent=tot.missed;
+  document.getElementById('ls-days').textContent=tot.total;
+  const lbEl=document.getElementById('last-backup-text');
+  if(lbEl){ let last=0; try{ last=parseInt(localStorage.getItem(STORAGE_KEY+'-last-backup'))||0; }catch(e){} lbEl.textContent=last?'Last export: '+new Date(last).toLocaleString():'No export yet — click "Export data" below.'; }
+  const pct=tot.total>0?Math.round(tot.green/tot.total*100):0;
+  document.getElementById('badge-text').textContent=
+    `<!-- Dev Progress Tracker -->\n![Streak](https://img.shields.io/badge/streak-${streak}%20days-a78bfa?style=flat-square)\n![Green Days](https://img.shields.io/badge/green%20days-${tot.green}-4ade80?style=flat-square)\n![LC New](https://img.shields.io/badge/LC%20new-${tot.lc_new}-60a5fa?style=flat-square)\n![LC Reviewed](https://img.shields.io/badge/LC%20reviewed-${tot.lc_rev}-2dd4bf?style=flat-square)\n![CF Activity](https://img.shields.io/badge/CF%20activity-${tot.cf}-f472b6?style=flat-square)\n![Commits](https://img.shields.io/badge/commits-${tot.commits}-fbbf24?style=flat-square)\n![Consistency](https://img.shields.io/badge/consistency-${pct}%25-22c55e?style=flat-square)`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   FIREBASE CLOUD UI
+════════════════════════════════════════════════════════════════════ */
+function renderCloudUI(user){
+  const box=document.getElementById('cloud-sync-box'); if(!box)return;
+  if(!window.firebaseConfigured){ box.innerHTML='<div style="font-size:12px;color:var(--muted);line-height:1.65">Firebase not configured — cloud sync is optional. The tracker saves locally without it.</div>'; return; }
+  if(typeof window.firebaseGetEntries!=='function'){ box.innerHTML='<div style="font-size:12px;color:#fca5a5"><i class="ti ti-alert-triangle"></i> Firebase failed to load. Check your connection and refresh.</div>'; return; }
+  user=user||(typeof window.firebaseCurrentUser==='function'?window.firebaseCurrentUser():null);
+  if(user){
+    box.innerHTML=`<div style="font-size:12px;color:var(--green-bright);margin-bottom:.6rem"><i class="ti ti-circle-check"></i> Signed in as ${user.email}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="action-btn" onclick="cloudSyncNow()"><i class="ti ti-refresh"></i> Sync now</button><button class="action-btn" onclick="cloudSignOutFn()"><i class="ti ti-logout"></i> Sign out</button></div><div id="cloud-status" style="font-size:11px;color:var(--subtle);margin-top:.5rem"></div>`;
+  } else {
+    box.innerHTML=`<div style="font-size:12px;color:var(--muted);margin-bottom:.6rem">Sign in to sync across devices. Your data is merged — never overwritten on sign-in.</div>
+    <input type="email" id="cloud-email" placeholder="email" autocomplete="username" style="width:100%;margin-bottom:6px;background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;padding:.5rem .7rem;color:var(--text);font-size:13px;font-family:inherit">
+    <input type="password" id="cloud-pass" placeholder="password (6+ chars)" autocomplete="current-password" style="width:100%;margin-bottom:8px;background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;padding:.5rem .7rem;color:var(--text);font-size:13px;font-family:inherit">
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="action-btn" onclick="cloudSignIn()"><i class="ti ti-login"></i> Sign in</button><button class="action-btn" onclick="cloudSignUp()"><i class="ti ti-user-plus"></i> Create account</button></div>
+    <div id="cloud-status" style="font-size:11px;color:var(--subtle);margin-top:.5rem"></div>`;
+  }
+}
+
+async function cloudSignUp(){
+  const email=(document.getElementById('cloud-email')||{}).value?.trim();
+  const pass=(document.getElementById('cloud-pass')||{}).value;
+  const st=document.getElementById('cloud-status');
+  if(!email||!pass){ if(st) st.textContent='Enter email and password.'; return; }
+  if(pass.length<6){ if(st) st.textContent='Password must be 6+ characters.'; return; }
+  if(st) st.textContent='Creating account…';
+  try{ await window.firebaseSignUp(email,pass); if(st) st.textContent='Account created and signed in.'; await loadAll(); if(entries[editingDate]) applyEntryToUI(normalise(entries[editingDate])); render(); updateBadge(); renderCloudUI(); }
+  catch(e){ if(st) st.textContent='Error: '+(e.message||e); }
+}
+async function cloudSignIn(){
+  const email=(document.getElementById('cloud-email')||{}).value?.trim();
+  const pass=(document.getElementById('cloud-pass')||{}).value;
+  const st=document.getElementById('cloud-status');
+  if(!email||!pass){ if(st) st.textContent='Enter email and password.'; return; }
+  if(st) st.textContent='Signing in…';
+  try{ await window.firebaseSignIn(email,pass); if(st) st.textContent='Signed in — merging your data…'; await loadAll(); if(entries[editingDate]) applyEntryToUI(normalise(entries[editingDate])); render(); updateBadge(); renderCloudUI(); }
+  catch(e){ if(st) st.textContent='Error: '+(e.message||e); }
+}
+async function cloudSignOutFn(){ try{ await window.firebaseSignOut(); }catch(e){} renderCloudUI(null); }
+async function cloudSyncNow(){
+  const st=document.getElementById('cloud-status'); if(st) st.textContent='Syncing…';
+  await loadAll(); if(entries[editingDate]) applyEntryToUI(normalise(entries[editingDate])); render(); updateBadge();
+  if(st) st.textContent='Synced — '+Object.keys(entries).length+' days loaded.';
+}
+window.onCloudAuthChanged=function(user){ renderCloudUI(user); };
+
+/* ═══════════════════════════════════════════════════════════════════
+   IMPORT / EXPORT
+════════════════════════════════════════════════════════════════════ */
+function copyBadge(){
+  const txt=document.getElementById('badge-text').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{ const btn=event.target.closest('button'); const orig=btn.innerHTML; btn.innerHTML='<i class="ti ti-check"></i> Copied!'; setTimeout(()=>{ btn.innerHTML=orig; },2000); });
+}
+function exportJSON(manual){
+  // Always export the full entries map — never a subset
+  const blob=new Blob([JSON.stringify(entries,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download='devtracker-'+todayStr+'.json'; a.click(); URL.revokeObjectURL(url);
+  try{ localStorage.setItem(STORAGE_KEY+'-last-backup',String(Date.now())); }catch(e){}
+  const banner=document.getElementById('backup-banner'); if(banner) banner.style.display='none';
+  if(manual) render();
+}
+function importJSON(){ document.getElementById('import-file').click(); }
+function handleImport(event){
+  const file=event.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const data=safeJsonParse(ev.target.result);
+      if(!data||typeof data!=='object'||Array.isArray(data)){ alert('Invalid file format — expected a JSON object.'); return; }
+      // Always merge (additive) — never replace
+      const merged=mergeEntryMaps(entries,data);
+      const added=Object.keys(merged).length-Object.keys(entries).length;
+      entries=merged;
+      persistSafe().then(function(){ render(); alert('Import complete. '+Object.keys(data).length+' days in file, '+added+' new days added. All existing data preserved.'); });
+    }catch(err){ alert('Could not parse file: '+err.message); }
+  };
+  reader.readAsText(file); event.target.value='';
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TAB SWITCHING
+════════════════════════════════════════════════════════════════════ */
+function switchTab(name,btn){
+  switchTabDirect(name);
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function switchTabDirect(name){
+  ['log','backlog','calendar','export'].forEach(t=>{ document.getElementById('tab-'+t).style.display=t===name?'':'none'; });
+  if(name==='calendar') renderCal();
+}
+
+function prevMonth(){ viewMonth--; if(viewMonth<0){ viewMonth=11; viewYear--; } renderCal(); }
+function nextMonth(){ viewMonth++; if(viewMonth>11){ viewMonth=0; viewYear++; } renderCal(); }
+
+// Defer load() so Firebase compat scripts (at bottom of body) have time to init.
+// We give them up to 300ms before proceeding regardless.
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',function(){ setTimeout(load,50); });
+} else {
+  setTimeout(load,50);
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     FIREBASE — compat CDN (no ESM dynamic imports, works in all sandboxes)
+════════════════════════════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  const FIREBASE_CONFIG={
+    apiKey:"AIzaSyCBpZ5-429z1t0ac_SGBlT04VmqytoYewY",
+    authDomain:"dev-tracker-1572c.firebaseapp.com",
+    projectId:"dev-tracker-1572c",
+    storageBucket:"dev-tracker-1572c.firebasestorage.app",
+    messagingSenderId:"903624445583",
+    appId:"1:903624445583:web:3b39dae11fdcdc078e6afa"
+  };
+  if(!FIREBASE_CONFIG.apiKey||!FIREBASE_CONFIG.projectId){
+    if(window._fbResolve) window._fbResolve(null); return;
+  }
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    window.firebaseConfigured=true;
+    const auth=firebase.auth();
+    const db=firebase.firestore();
+    let currentUser=null;
+    auth.onAuthStateChanged(function(user){
+      currentUser=user;
+      if(window._fbResolve){ const r=window._fbResolve; window._fbResolve=null; r(user); }
+      if(typeof window.onCloudAuthChanged==='function') window.onCloudAuthChanged(user);
+    });
+    window.firebaseSignUp      =function(e,p){ return auth.createUserWithEmailAndPassword(e,p).then(c=>c.user); };
+    window.firebaseSignIn      =function(e,p){ return auth.signInWithEmailAndPassword(e,p).then(c=>c.user); };
+    window.firebaseSignOut     =function(){ return auth.signOut(); };
+    window.firebaseCurrentUser =function(){ return currentUser; };
+    window.firebaseGetEntries  =async function(){ if(!currentUser)return null; const s=await db.collection('trackerData').doc(currentUser.uid).get(); return s.exists?(s.data().entries||null):null; };
+    window.firebaseSetEntries  =async function(json){ if(!currentUser)return false; await db.collection('trackerData').doc(currentUser.uid).set({entries:json,updatedAt:Date.now()}); return true; };
+  }catch(err){
+    console.error('Firebase init error:',err);
+    if(window._fbResolve){ window._fbResolve(null); window._fbResolve=null; }
+  }
+})();
+</script>
+</body>
+</html>
