@@ -35,7 +35,7 @@
     .card-sm{padding:1rem}
     .section-eyebrow{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem}
     /* STATS */
-    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1rem}
+    .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1rem}
     .stat{background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;padding:.75rem 1rem;text-align:center}
     .stat-num{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1}
     .stat-lbl{font-size:11px;color:var(--muted);margin-top:4px}
@@ -210,7 +210,7 @@
     .safety-strip.safe{background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);color:var(--green-bright)}
     .safety-strip.warn{background:var(--amber-dim);border:0.5px solid rgba(251,191,36,0.3);color:var(--amber)}
     @media(max-width:580px){
-      .stats-row{grid-template-columns:1fr 1fr}
+      .stats-row{grid-template-columns:repeat(3,1fr)}
       .grid2{grid-template-columns:1fr}
       .topbar{gap:10px}
       .tier-checklist-grid{grid-template-columns:1fr!important}
@@ -237,7 +237,8 @@
 
   <!-- SUMMARY STATS (lifetime, only updated on explicit Save) -->
   <div class="stats-row">
-    <div class="stat"><div class="stat-num green" id="s-lc">0</div><div class="stat-lbl">LC Solved</div></div>
+    <div class="stat"><div class="stat-num green" id="s-lc">0</div><div class="stat-lbl">LC New</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--teal)" id="s-lcrev">0</div><div class="stat-lbl">LC Reviewed</div></div>
     <div class="stat"><div class="stat-num accent" id="s-cf">0</div><div class="stat-lbl">CF Activity</div></div>
     <div class="stat"><div class="stat-num blue"   id="s-cs">0</div><div class="stat-lbl">CS Topics</div></div>
     <div class="stat"><div class="stat-num amber"  id="s-commits">0</div><div class="stat-lbl">Commits</div></div>
@@ -1066,7 +1067,8 @@ function calcBacklog(){
 function render(){
   const tot=calcTotals(), bl=calcBacklog(), streak=calcStreak();
   document.getElementById('streak-num').textContent=streak;
-  document.getElementById('s-lc').textContent=tot.lc_new+tot.lc_rev;
+  document.getElementById('s-lc').textContent=tot.lc_new;
+  document.getElementById('s-lcrev').textContent=tot.lc_rev;
   document.getElementById('s-cf').textContent=tot.cf;
   document.getElementById('s-cs').textContent=tot.cs;
   document.getElementById('s-commits').textContent=tot.commits;
@@ -1154,7 +1156,7 @@ function renderExport(tot,streak){
   if(lbEl){ let last=0; try{ last=parseInt(localStorage.getItem(STORAGE_KEY+'-last-backup'))||0; }catch(e){} lbEl.textContent=last?'Last export: '+new Date(last).toLocaleString():'No export yet — click "Export data" below.'; }
   const pct=tot.total>0?Math.round(tot.green/tot.total*100):0;
   document.getElementById('badge-text').textContent=
-    `<!-- Dev Progress Tracker -->\n![Streak](https://img.shields.io/badge/streak-${streak}%20days-a78bfa?style=flat-square)\n![Green Days](https://img.shields.io/badge/green%20days-${tot.green}-4ade80?style=flat-square)\n![LC Solved](https://img.shields.io/badge/LC%20solved-${tot.lc_new+tot.lc_rev}-60a5fa?style=flat-square)\n![CF Activity](https://img.shields.io/badge/CF%20activity-${tot.cf}-f472b6?style=flat-square)\n![Commits](https://img.shields.io/badge/commits-${tot.commits}-fbbf24?style=flat-square)\n![Consistency](https://img.shields.io/badge/consistency-${pct}%25-22c55e?style=flat-square)`;
+    `<!-- Dev Progress Tracker -->\n![Streak](https://img.shields.io/badge/streak-${streak}%20days-a78bfa?style=flat-square)\n![Green Days](https://img.shields.io/badge/green%20days-${tot.green}-4ade80?style=flat-square)\n![LC New](https://img.shields.io/badge/LC%20new-${tot.lc_new}-60a5fa?style=flat-square)\n![LC Reviewed](https://img.shields.io/badge/LC%20reviewed-${tot.lc_rev}-2dd4bf?style=flat-square)\n![CF Activity](https://img.shields.io/badge/CF%20activity-${tot.cf}-f472b6?style=flat-square)\n![Commits](https://img.shields.io/badge/commits-${tot.commits}-fbbf24?style=flat-square)\n![Consistency](https://img.shields.io/badge/consistency-${pct}%25-22c55e?style=flat-square)`;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
